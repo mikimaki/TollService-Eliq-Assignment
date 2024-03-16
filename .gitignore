@@ -4,3 +4,7 @@ TollFee.Api/obj
 TollFee.Api.Test/bin
 TollFee.Api.Test/obj
 TollFee.Api.Test/Properties
+
+.idea/
+.DS_Store
+.vs/
