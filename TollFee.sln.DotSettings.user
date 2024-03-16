@@ -1,7 +1,6 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=aed4576c_002D38b3_002D4be0_002Dbc8b_002D91bf75515c9c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CalculateFee_ValidInputProvided_ReturnsCalculatedFeeAndDailyAverage" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::00B6D786-A354-4AC1-8E38-99FC5CFB313E::net6.0::TollFee.Api.Test.TollFeeControllerTests.CalculateFee_InputProvided_ReturnsCalculatedFeeAndDailyAverage&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::00B6D786-A354-4AC1-8E38-99FC5CFB313E::net6.0::TollFee.Api.Test.TollFeeControllerTests.CalculateFee_DefaultInputProvided_ReturnsCalculatedFeeAndDailyAverage&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::00B6D786-A354-4AC1-8E38-99FC5CFB313E::net6.0::TollFee.Api.Test.Domain.CongestionTaxRateAggregateTests.CalculateTax_ValidDateProvided_CorrectTaxCalculated&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
