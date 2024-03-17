@@ -13,7 +13,7 @@ namespace TollFee.Api.Migrations
             migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 420, 479, 22});
             migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 480, 509, 16});
             migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 510, 899, 9});
-            migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 900, 928, 16});
+            migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 900, 929, 16});
             migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 930, 1019, 22});
             migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 1020, 1079, 16});
             migrationBuilder.InsertData("FeeRates", new[] { "Year", "FromMinute", "ToMinute", "Price" }, new object[] { 2024, 1080, 1109, 9});
