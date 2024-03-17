@@ -200,7 +200,7 @@ public class CongestionTaxRateAggregateTests
     }
 
     [Test]
-    public void CalculateTax_TollGatePassedSeveralTimesInAnHour_TaxAppliedOnce()
+    public void CalculateTax_TollGatePassedSeveralTimesWithinAnHour_HighestTaxAppliedOnce()
     {
         var passages = new[]
         {
@@ -231,7 +231,8 @@ public class CongestionTaxRateAggregate
     {
         var taxSum = 0m;
         var lastPassagePlusOneHour = DateTime.MinValue;
-        var passageTaxesWithinOneHour = new List<decimal> {0};
+        var passageTaxesWithinOneHour = new List<decimal> { 0 };
+        
         foreach (var tollPassage in tollPassageDateTimes.OrderBy(x => x))
         {
             if (_congestionTaxZeroRates.Any(x => DatesEqual(x.ZeroTaxRateDate, tollPassage.Date)))
@@ -239,16 +240,16 @@ public class CongestionTaxRateAggregate
                 continue;
             }
 
-            if (DateTime.Compare(tollPassage, lastPassagePlusOneHour) == 1)
+            if (!PassageIsWithinOneHourOfThePreviousPassages(tollPassage, lastPassagePlusOneHour))
             {
                 taxSum += passageTaxesWithinOneHour.Max();
-                passageTaxesWithinOneHour = new List<decimal> {0};
+                passageTaxesWithinOneHour = new List<decimal> { 0 };
                 lastPassagePlusOneHour = tollPassage.AddHours(1);
             }
 
             foreach (var taxRate in _congestionTaxRates)
             {
-                var tollPassageMinutesOfTheDay = TimeOfDayIgnoreSecondsAndMilliseconds(tollPassage.TimeOfDay);
+                var tollPassageMinutesOfTheDay = MinutesOfDayIgnoreSecondsAndMilliseconds(tollPassage.TimeOfDay);
                 if (tollPassageMinutesOfTheDay >= taxRate.FromMinuteOfTheDay && taxRate.ToMinuteOfTheDay >= tollPassageMinutesOfTheDay)
                 {
                     passageTaxesWithinOneHour.Add(taxRate.Price);
@@ -261,7 +262,9 @@ public class CongestionTaxRateAggregate
         return CapTaxAt60(taxSum);
     }
 
-    private static double TimeOfDayIgnoreSecondsAndMilliseconds(TimeSpan tollPassageTimeOfDay)
+    private static bool PassageIsWithinOneHourOfThePreviousPassages(DateTime tollPassage, DateTime lastPassagePlusOneHour) => DateTime.Compare(tollPassage, lastPassagePlusOneHour) == -1;
+
+    private static double MinutesOfDayIgnoreSecondsAndMilliseconds(TimeSpan tollPassageTimeOfDay)
     {
         var sanitizedTimeSpan = new TimeSpan(tollPassageTimeOfDay.Hours, tollPassageTimeOfDay.Minutes, 0);
         return sanitizedTimeSpan.TotalMinutes;
