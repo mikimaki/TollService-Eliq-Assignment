@@ -67,7 +67,54 @@ public class CongestionTaxRateAggregateTests
 
         var congestionTaxZeroFeeRates = new[]
         {
-            new CongestionTaxZeroRate()
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 1, 1)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 1, 6)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 3, 29)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 3, 31)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 4, 1)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 5, 1)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 5, 9)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 6, 6)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 6, 22)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 10, 2)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 12, 25)
+            },
+            new CongestionTaxZeroRate
+            {
+                ZeroTaxRateDate = new DateOnly(2024, 12, 26)
+            }
         };
 
         _sut = new CongestionTaxRateAggregate(congestionTaxFeeRates, congestionTaxZeroFeeRates);
@@ -90,7 +137,8 @@ public class CongestionTaxRateAggregateTests
     [TestCase(5, 59, 0)]
     public void CalculateTax_ValidSinglePassage_CorrectTaxCalculated(int passageHour, int passageMinute, decimal expectedPrice)
     {
-        var result = _sut.CalculateCongestionTax(new DateTime[] { new DateTime(2024, 1, 15, passageHour, passageMinute, 0) });
+        var passage = new[] { new DateTime(2024, 1, 15, passageHour, passageMinute, 0) };
+        var result = _sut.CalculateCongestionTax(passage);
 
         Assert.That(result, Is.EqualTo(expectedPrice));
     }
@@ -100,9 +148,9 @@ public class CongestionTaxRateAggregateTests
     {
         var passages = new[]
         {
-            new DateTime(2024, 2, 2, 6, 30, 1),
             new DateTime(2024, 2, 2, 8, 30, 0),
             new DateTime(2024, 2, 2, 18, 15, 1),
+            new DateTime(2024, 2, 2, 6, 30, 1),
         };
 
         var expectedPrice = 34;
@@ -128,6 +176,44 @@ public class CongestionTaxRateAggregateTests
 
         Assert.That(result, Is.EqualTo(expectedPrice));
     }
+
+    [Test]
+    [TestCase(1, 1)]
+    [TestCase(1, 6)]
+    [TestCase(3, 29)]
+    [TestCase(3, 31)]
+    [TestCase(4, 1)]
+    [TestCase(5, 1)]
+    [TestCase(5, 9)]
+    [TestCase(6, 6)]
+    [TestCase(6, 22)]
+    [TestCase(10, 2)]
+    [TestCase(12, 25)]
+    [TestCase(12, 26)]
+    public void CalculateTax_PassagesOccurredOnZeroRateDays_TaxIsZero(int passageMonth, int passageDay)
+    {
+        var passage = new[] { new DateTime(2024, passageMonth, passageDay, 15, 25, 0) };
+
+        var result = _sut.CalculateCongestionTax(passage);
+
+        Assert.That(result, Is.Zero);
+    }
+
+    [Test]
+    public void CalculateTax_TollGatePassedSeveralTimesInAnHour_TaxAppliedOnce()
+    {
+        var passages = new[]
+        {
+            new DateTime(2024, 2, 2, 6, 29, 1),
+            new DateTime(2024, 2, 2, 6, 35, 0),
+            new DateTime(2024, 2, 2, 7, 15, 1),
+        };
+
+        var expectedPrice = 22;
+        var result = _sut.CalculateCongestionTax(passages);
+
+        Assert.That(result, Is.EqualTo(expectedPrice));
+    }
 }
 
 public class CongestionTaxRateAggregate
@@ -144,24 +230,48 @@ public class CongestionTaxRateAggregate
     public decimal CalculateCongestionTax(DateTime[] tollPassageDateTimes)
     {
         var taxSum = 0m;
-        foreach (var tollPassage in tollPassageDateTimes)
+        var lastPassagePlusOneHour = DateTime.MinValue;
+        var passageTaxesWithinOneHour = new List<decimal> {0};
+        foreach (var tollPassage in tollPassageDateTimes.OrderBy(x => x))
         {
-            if (_congestionTaxZeroRates.Any(x => x.FreeTaxRateDate.Equals(tollPassage.Date)))
+            if (_congestionTaxZeroRates.Any(x => DatesEqual(x.ZeroTaxRateDate, tollPassage.Date)))
             {
                 continue;
             }
 
+            if (DateTime.Compare(tollPassage, lastPassagePlusOneHour) == 1)
+            {
+                taxSum += passageTaxesWithinOneHour.Max();
+                passageTaxesWithinOneHour = new List<decimal> {0};
+                lastPassagePlusOneHour = tollPassage.AddHours(1);
+            }
+
             foreach (var taxRate in _congestionTaxRates)
             {
-                var tollPassageMinutesOfTheDay = tollPassage.TimeOfDay.TotalMinutes;
+                var tollPassageMinutesOfTheDay = TimeOfDayIgnoreSecondsAndMilliseconds(tollPassage.TimeOfDay);
                 if (tollPassageMinutesOfTheDay >= taxRate.FromMinuteOfTheDay && taxRate.ToMinuteOfTheDay >= tollPassageMinutesOfTheDay)
                 {
-                    taxSum += taxRate.Price;
+                    passageTaxesWithinOneHour.Add(taxRate.Price);
                 }
             }
         }
 
+        taxSum += passageTaxesWithinOneHour.Max();
+
         return CapTaxAt60(taxSum);
+    }
+
+    private static double TimeOfDayIgnoreSecondsAndMilliseconds(TimeSpan tollPassageTimeOfDay)
+    {
+        var sanitizedTimeSpan = new TimeSpan(tollPassageTimeOfDay.Hours, tollPassageTimeOfDay.Minutes, 0);
+        return sanitizedTimeSpan.TotalMinutes;
+    }
+
+    private static bool DatesEqual(DateOnly dateOnly, DateTime dateTime)
+    {
+        return dateOnly.Year == dateTime.Year
+               && dateOnly.Month == dateTime.Month
+               && dateOnly.Day == dateTime.Day;
     }
 
     private static decimal CapTaxAt60(decimal taxSum)
@@ -172,7 +282,7 @@ public class CongestionTaxRateAggregate
 
 public record CongestionTaxZeroRate
 {
-    public DateOnly FreeTaxRateDate { get; init; }
+    public DateOnly ZeroTaxRateDate { get; init; }
 }
 
 public record CongestionTaxRate
