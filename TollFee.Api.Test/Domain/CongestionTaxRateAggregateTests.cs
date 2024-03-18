@@ -106,4 +106,22 @@ public class CongestionTaxRateAggregateTests
 
         Assert.That(result, Is.EqualTo(expectedPrice));
     }
+
+    [Test]
+    public void CalculateTax_PassagesProvidedSpanningSeveralDays_CalculatesTaxForEachDay()
+    {
+        var passages = new[]
+        {
+            new DateTime(2024, 2, 2, 6, 29, 1),
+            new DateTime(2024, 2, 2, 7, 35, 1),
+            new DateTime(2024, 2, 3, 6, 29, 1),
+            new DateTime(2024, 2, 3, 7, 35, 1),
+            new DateTime(2024, 2, 5, 7, 35, 1),
+        };
+
+        var expectedPrice = 84;
+        var result = _sut.CalculateCongestionTax(passages);
+
+        Assert.That(result, Is.EqualTo(expectedPrice));
+    }
 }
