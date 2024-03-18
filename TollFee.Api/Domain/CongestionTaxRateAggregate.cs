@@ -6,13 +6,13 @@ using System.Linq;
 
 public class CongestionTaxRateAggregate
 {
-    private readonly CongestionTaxRate[] _congestionTaxRates;
-    private readonly CongestionTaxZeroRate[] _congestionTaxZeroRates;
+    public readonly CongestionTaxRate[] CongestionTaxRates;
+    public readonly CongestionTaxZeroRate[] CongestionTaxZeroRates;
 
     public CongestionTaxRateAggregate(CongestionTaxRate[] congestionTaxRates, CongestionTaxZeroRate[] congestionTaxZeroRates)
     {
-        _congestionTaxRates = congestionTaxRates;
-        _congestionTaxZeroRates = congestionTaxZeroRates;
+        CongestionTaxRates = congestionTaxRates;
+        CongestionTaxZeroRates = congestionTaxZeroRates;
     }
 
     public decimal CalculateCongestionTax(DateTime[] tollPassageDateTimes)
@@ -23,7 +23,7 @@ public class CongestionTaxRateAggregate
 
         foreach (var tollPassage in tollPassageDateTimes.OrderBy(x => x))
         {
-            if (_congestionTaxZeroRates.Any(x => DatesEqual(x.ZeroTaxRateDate, tollPassage.Date)))
+            if (CongestionTaxZeroRates.Any(x => DatesEqual(x.ZeroTaxRateDate, tollPassage.Date)))
             {
                 continue;
             }
@@ -35,7 +35,7 @@ public class CongestionTaxRateAggregate
                 lastPassagePlusOneHour = tollPassage.AddHours(1);
             }
 
-            foreach (var taxRate in _congestionTaxRates)
+            foreach (var taxRate in CongestionTaxRates)
             {
                 var tollPassageMinutesOfTheDay = MinutesOfDayIgnoreSecondsAndMilliseconds(tollPassage.TimeOfDay);
                 if (tollPassageMinutesOfTheDay >= taxRate.FromMinuteOfTheDay && taxRate.ToMinuteOfTheDay >= tollPassageMinutesOfTheDay)

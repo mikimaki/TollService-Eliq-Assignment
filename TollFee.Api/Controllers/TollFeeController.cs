@@ -6,43 +6,42 @@ using TollFee.Api.Services;
 
 namespace TollFee.Api.Controllers
 {
+    using System.Threading.Tasks;
     using Persistence;
 
     [ApiController]
     [Route("[controller]")]
     public class TollFeeController : ControllerBase
     {
-        private readonly TollDBContext _dbContext;
+        private readonly ICongestionTaxRateAggregateFactory _aggregateFactory;
 
-        public TollFeeController(TollDBContext dbContext)
+        public TollFeeController(ICongestionTaxRateAggregateFactory aggregateFactory)
         {
-            _dbContext = dbContext;
+            _aggregateFactory = aggregateFactory;
         }
 
         [HttpPost("CalculateFee")]
-        public CalculateFeeResponse CalculateFee([FromBody] DateTime[] request)
+        public async Task<IActionResult> CalculateFee([FromBody] DateTime[] request)
         {
             if (request.Length == 0)
             {
-                request = new DateTime[]
-                {
-                    new(2021, 12, 1, 7, 30, 1),
-                    new(2021, 12, 1, 9, 30, 1),
-                    new(2021, 1, 1),
-                    new(2021, 1, 2)
-                };
+                return BadRequest("No passages included in request.");
             }
 
-            var notFree = TollFreeService.RemoveFree(request);
-            var totalFee = TollFeeService.GetFee(notFree);
+            var aggregate = await _aggregateFactory.CreateCongestionTaxRateAggregate(request
+                .DistinctBy(x => x.Year)
+                .Select(x => x.Year)
+                .ToArray());
+
+            var calculatedFee = aggregate.CalculateCongestionTax(request);
 
             var response = new CalculateFeeResponse
             {
-                TotalFee = totalFee,
-                AverageFeePerDay = totalFee / request.Distinct().Count()
+                TotalFee = calculatedFee,
+                AverageFeePerDay = calculatedFee / request.Distinct().Count()
             };
 
-            return response;
+            return Ok(response);
         }
     }
 }

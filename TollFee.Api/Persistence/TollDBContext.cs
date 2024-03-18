@@ -15,8 +15,8 @@ namespace TollFee.Api.Persistence
         {
         }
 
-        public virtual DbSet<TollFeeRate> FeeRates { get; set; }
-        public virtual DbSet<TollFeeZeroRate> ZeroFeeRates { get; set; }
+        public virtual DbSet<TollTaxRate> TaxRates { get; set; }
+        public virtual DbSet<TollZeroTaxRate> ZeroTaxRates { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -29,9 +29,9 @@ namespace TollFee.Api.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TollFeeRate>(entity => { entity.HasNoKey(); });
+            modelBuilder.Entity<TollTaxRate>(entity => { entity.HasNoKey(); });
 
-            modelBuilder.Entity<TollFeeZeroRate>(entity => { entity.HasNoKey(); });
+            modelBuilder.Entity<TollZeroTaxRate>(entity => { entity.HasNoKey(); });
         }
 
     }

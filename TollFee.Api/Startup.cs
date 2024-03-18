@@ -7,9 +7,8 @@ using Microsoft.OpenApi.Models;
 
 namespace TollFee.Api
 {
-    using Microsoft.EntityFrameworkCore;
-    using Models;
     using Persistence;
+    using Services;
 
     public class Startup
     {
@@ -24,6 +23,7 @@ namespace TollFee.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<TollDBContext>();
+            services.AddTransient<ICongestionTaxRateAggregateFactory, CongestionTaxRateAggregateFactory>();
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "TollFee.Api", Version = "v1" }); });
         }
@@ -39,7 +39,6 @@ namespace TollFee.Api
             }
 
             db.Database.EnsureCreated();
-            //db.Database.Migrate();
 
             app.UseRouting();
 

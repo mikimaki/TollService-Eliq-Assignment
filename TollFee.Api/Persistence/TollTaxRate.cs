@@ -5,7 +5,7 @@ namespace TollFee.Api.Persistence
     using Microsoft.EntityFrameworkCore;
 
     [Keyless]
-    public record TollFeeRate
+    public record TollTaxRate
     {
         public int Year { get; init; }
         public int FromMinute { get; init; }
