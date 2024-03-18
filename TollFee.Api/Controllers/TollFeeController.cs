@@ -25,7 +25,7 @@ namespace TollFee.Api.Controllers
         {
             if (request.Length == 0)
             {
-                return BadRequest("No passages included in request.");
+                return BadRequest("No passages provided in request.");
             }
 
             var aggregate = await _aggregateFactory.CreateCongestionTaxRateAggregate(request
